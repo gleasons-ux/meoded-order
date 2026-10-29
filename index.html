@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}</style>
+<title>Meoded Plaster Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky header + category rail, catalog list, slide-up order sheet with copy-to-text */
+:root{
+  --bg:#eef0ee; --surface:#ffffff; --surface2:#e3e7e4; --line:#cdd3cf;
+  --fg:#1d2422; --muted:#5f6b67; --accent:#1f5a4c; --accent-fg:#ffffff; --hl:#f3e27a; --warn:#9a4a14;
+  --display:"Bodoni Moda",Georgia,serif; --body:"Public Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1c2320; --surface2:#25302c; --line:#33403b;
+  --fg:#e6ebe8; --muted:#9aa7a2; --accent:#6fc2a9; --accent-fg:#0d1513; --hl:#6b5f1d; --warn:#e7a06a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1c2320; --surface2:#25302c; --line:#33403b;
+  --fg:#e6ebe8; --muted:#9aa7a2; --accent:#6fc2a9; --accent-fg:#0d1513; --hl:#6b5f1d; --warn:#e7a06a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:12px;padding-block:12px 8px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.05;margin-right:auto}
+.brand b{font-family:var(--display);font-size:24px;letter-spacing:.02em}
+.brand span{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#q{flex:1 1 220px;min-width:0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-block:4px 10px;scrollbar-width:none}
+.chips button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:5px 12px;font:500 13px var(--body);cursor:pointer}
+.chips button.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+main{padding-block:14px 120px}
+.who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.who label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);min-width:0}
+.who input{font-size:16px;text-transform:none;letter-spacing:0}
+.who input.miss{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
+@media (max-width:680px){.who{grid-template-columns:1fr 1fr}.who label:last-child{grid-column:1/-1}}
+@media (max-width:440px){.who{grid-template-columns:1fr}}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:14px}
+.note b{color:var(--warn)}
+section{margin-bottom:22px}
+h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0 0 2px}
+h3{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:12px 0 6px;font-weight:600}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.has{background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.desc{font-weight:600;min-width:0}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.meta .sku{font-family:var(--mono);color:var(--fg)}
+.meta .cost{color:var(--accent);font-weight:600}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:18px;cursor:pointer;line-height:1}
+.step input{width:52px;text-align:center;padding:6px 4px;font-variant-numeric:tabular-nums}
+.step .case{width:auto;padding:0 8px;font-size:11px;font-weight:600;letter-spacing:.04em}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.tot{margin-right:auto;font-variant-numeric:tabular-nums}
+.tot b{font-size:18px}
+.tot small{display:block;color:var(--muted);font-size:12px}
+.btn{border:0;border-radius:9px;padding:11px 18px;font:600 14px var(--body);cursor:pointer;background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(10,14,13,.45);display:flex;align-items:flex-end;justify-content:center}
+.panel{background:var(--surface);width:100%;max-width:720px;max-height:92%;overflow:auto;border-radius:14px 14px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel h2{display:flex;justify-content:space-between;align-items:center}
+.x{background:none;border:0;font-size:26px;color:var(--muted);cursor:pointer}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.form .full{grid-column:1/-1}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+thead th{border-top:0;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface2)}
+td.n,th.n{text-align:right;white-space:nowrap}
+td .sku{font-family:var(--mono);font-size:12px;color:var(--muted)}
+tfoot td{font-weight:700}
+.warnline{color:var(--warn);font-size:12px}
+pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font:12.5px/1.5 var(--mono);margin:12px 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30}
+.src{font-size:12px;color:var(--muted);margin-top:4px}
+.confirm{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><b>MEODED</b><span>Venetian Plaster · Paint Place NY</span></div>
+      <input id="q" type="search" placeholder="Search item, SKU, or color" aria-label="Search">
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="who">
+    <label for="store">Store ordering<input id="store" list="stores" placeholder="e.g. Queens" autocomplete="off"></label>
+    <label for="by">Ordered by<input id="by" placeholder="Your name" autocomplete="name"></label>
+    <label for="phone">Phone for questions<input id="phone" type="tel" inputmode="tel" placeholder="(516) 555-0123" autocomplete="tel"></label>
+  </div>
+  <div class="note"><span>✎</span><div><b>Deep colors:</b> use the Base 3 + 4 SKU. <b>Plasters</b> order in full cases only: quarts by 6, gallons by 2. <b>Spatulas</b> order in full boxes of 12.</div></div>
+  <div id="cat"></div>
+</main>
+
+<div class="bar"><div class="wrap">
+  <div class="tot"><b id="tCost">0</b> units<small id="tCount">No items yet</small></div>
+  <button class="btn ghost" id="clearBtn">Clear</button>
+  <button class="btn" id="reviewBtn">Review order</button>
+</div></div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Order review <button class="x" id="closeBtn" aria-label="Close">×</button></h2>
+    <div class="form">
+      <label>PO #<input id="po" placeholder="Optional"></label>
+      <label>Need by<input id="need" type="date"></label>
+      <label class="full">Notes<textarea id="notes" rows="2" placeholder="Tint instructions, job name, delivery notes"></textarea></label>
+    </div>
+    <datalist id="stores"><option>Queens</option><option>Brooklyn</option><option>Long Island</option><option>Westchester</option></datalist>
+    <div class="tbl"><table>
+      <thead><tr><th>Item</th><th class="n">Qty</th></tr></thead>
+      <tbody id="lines"></tbody>
+      <tfoot><tr><td>Total units</td><td class="n" id="fCost"></td></tr></tfoot>
+    </table></div>
+    <pre id="txt"></pre>
+    <div class="actions">
+      <button class="btn ghost" id="selBtn">Select text</button>
+      <button class="btn" id="copyBtn">Copy order</button>
+    </div>
+    <div class="src">Send to Meoded: orders@meodedpaint.com · (818) 854-9467</div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// [sku, description, upc, msrp, dealer cost, case qty (0 = N/A)]
+const CATALOG=[
+["Plasters",[
+ ["Quarts",[
+  ["CLAY-1QT","Moroccan Clay 1.1 Kilo, 1 Qt","794300165087",26.00,15.60,6],
+  ["SL-1KG","Stucco Lamundo 1 Kilo, 1 Qt","630148988641",24.20,14.52,6],
+  ["MT-1KG","Marmorino Tintoretto 1 Kilo, 1 Qt","630148988566",24.20,14.52,6],
+  ["MP-1KG","Marmorino Palladino 1 Kilo, 1 Qt","630148988665",24.20,14.52,6],
+  ["INTO-1KG","Marmorino Intonaco 1 Kilo, 1 Qt","794300164912",24.20,14.52,6],
+  ["RM-1KG","Renaissance Marbleized 1 Kilo, 1 Qt","198168158449",24.20,14.52,6],
+  ["TFW-1KG","Tonachino Firenze White 1 Kilo, 1 Qt","630148988610",22.40,13.44,6],
+  ["GL-2LB","Golmex Concrete Plaster 2 lbs, 1 Qt","794504545326",12.50,7.50,6],
+  ["STONE Z4","Stone Additive 1 Kilo, Z4","670924872207",8.90,5.34,0]]],
+ ["Gallons",[
+  ["CLAY-1G","Moroccan Clay 4.4 Kilo, 1 G","794300165094",89.90,53.94,2],
+  ["SL-5 KG","Stucco Lamundo 5 Kilo, 1 G","630148988658",88.28,52.97,2],
+  ["MT-5KG","Marmorino Tintoretto 5 Kilo, 1 G","630148988580",88.28,52.97,2],
+  ["MP-5KG","Marmorino Palladino 5 Kilo, 1 G","630148988597",88.28,52.97,2],
+  ["INTO-5 KG","Marmorino Intonaco 5 Kilo, 1 G","794300164905",88.28,52.97,2],
+  ["RM-5KG","Renaissance Marbleized 5 Kilo, 1 G","198168723982",88.28,52.97,2],
+  ["TFW-5KG","Tonachino Firenze White 5 Kilo, 1 G","630148988627",75.95,45.57,2],
+  ["GL-10LB","Golmex Concrete Plaster 10 lbs, 1 G","794504545227",42.20,25.32,2],
+  ["MV-10LB","Vega Plaster 10 lbs, 1 G","730148987405",39.50,23.70,2],
+  ["MC-10LB","Concretta FS 10 lbs, 1 G","630148988924",42.40,25.44,2]]],
+ ["4 Gallon buckets",[
+  ["CLAY-4G","Moroccan Clay 17.6 Kilo, 4.25 G","794300165100",323.00,193.80,1],
+  ["SL-20KG","Stucco Lamundo 20 Kilo, 4.25 G","630148988559",303.20,181.92,1],
+  ["MT-20K","Marmorino Tintoretto 20 Kilo, 4.25 G","630148988573",303.20,181.92,1],
+  ["MP-20KG","Marmorino Palladino 20 Kilo, 4.25 G","630148988603",303.20,181.92,1],
+  ["INTO-20 KG","Marmorino Intonaco 20 Kilo, 4.25 G","794300164899",303.20,181.92,1],
+  ["RM-20KG","Renaissance Marbleized 20 Kilo, 4.25 G","198168248171",303.20,181.92,1],
+  ["TFW-20K","Tonachino Firenze White 20 Kilo, 4.25 G","630148988634",234.35,140.61,1]]],
+ ["5 Gallon buckets",[
+  ["GL-50LB","Golmex Concrete Plaster 50 lbs, 5 G","794504545128",156.50,93.90,1],
+  ["MV-50LB","Vega Plaster 50 lbs, 5 G","630148988740",127.70,76.62,1],
+  ["MC-50LB","Concretta FS 50 lbs, 5 G","630148988733",166.85,100.11,1]]]]],
+["Primers",[["",[
+  ["QP-04","Quartz Primer 1 Quart","718122865055",24.70,14.82,6],
+  ["QP-01","Quartz Primer 1 Gallon","718122865451",79.55,47.73,2],
+  ["QP-14L","Quartz Primer 14 Liter","718122865352",217.25,130.35,1]]]]],
+["Lime Paint",[
+ ["Quarts",[
+  ["Lime Wash 1QT","Meoded Lime Wash Quart","630148988764",28.25,16.95,4],
+  ["LW Base Coat 1QT","Meoded Lime Wash Base Coat Quart","630148988887",25.55,15.33,4]]],
+ ["Gallons",[
+  ["Lime Wash 1G","Meoded Lime Wash Gallon","630148988757",85.85,51.51,2],
+  ["LW Base Coat 1G","Meoded Lime Wash Base Coat Gallon","630148988900",78.20,46.92,2]]],
+ ["Buckets",[["Lime Wash 4G","Meoded Lime Wash 4G Bucket","670924871774",323.00,193.80,1]]],
+ ["Fandeck",[["Fandeck","Meoded 88 Color Fandeck","794300164882",44.00,26.40,1]]]]],
+["Sealers & Topcoats",[
+ ["Pints",[
+  ["PGuard Pint Satin","PlasterGuard Satin 1 Pint","794300164769",31.85,22.30,6],
+  ["PGuard Pint XLG","PlasterGuard Low Gloss 1 Pint","794300164790",31.85,22.30,6],
+  ["PSeal Plus12oz XLG","PlasterSeal Plus 12oz, Extra Low Gloss","794300164851",116.00,81.20,6]]],
+ ["Quarts",[
+  ["SS QT","Stain Shield Sealer 1 Quart","794300165049",65.60,45.92,8],
+  ["PGuard Qt Satin","PlasterGuard Satin 1 Quart","794300164776",58.40,40.88,4],
+  ["PGuard Qt XLG","PlasterGuard Extra Low Gloss 1 Quart","794300164806",58.40,40.88,4],
+  ["PGuard Qt Gloss","PlasterGuard Gloss 1 Quart","794300164837",58.40,40.88,4],
+  ["PSeal Plus 3 QT XLG","PlasterSeal Plus Quart Unit Extra Low Gloss","794300164868",244.70,171.29,4],
+  ["HW-04","Hydrowax 1 Quart, Water Soluble Wax","705105398334",59.75,35.85,6],
+  ["VG-04","Velature Glaze 1 Quart","718122865154",44.90,26.94,6],
+  ["Cristallo SG-1QT","Cristallo Clear Coat Semi Gloss, 1 Quart","630148988894",42.20,25.32,6],
+  ["Cristallo Matte-1QT","Cristallo Clear Coat Matte, 1 Quart","0222245678176",42.20,25.32,6]]],
+ ["Gallons",[
+  ["PGuard 1G Satin","PlasterGuard Satin 1 Gallon","794300164783",193.40,135.38,2],
+  ["PGuard 1G XLG","PlasterGuard Extra Low Gloss 1 Gallon","794300164813",193.40,135.38,2],
+  ["PGuard 1G Gloss","PlasterGuard Gloss 1 Gallon","794300164844",193.40,135.38,2],
+  ["PSeal Plus G","PlasterSeal Plus 3G Unit Extra Low Gloss","794300164875",535.40,374.78,2],
+  ["HW-01","Hydrowax 1 Gallon, Water Soluble Wax","705105398433",225.80,135.48,2],
+  ["VG-01","Velature Glaze 1 Gallon","718122865253",150.65,90.39,2],
+  ["Cristallo SG-1G","Cristallo Clear Coat Semi Gloss, 1 Gallon","630148988917",128.60,77.16,2],
+  ["Cristallo Matte-1G","Cristallo Clear Coat Matte, 1 Gallon","794300164905",128.60,77.16,2]]]]],
+["Sapphire Metallic",(()=>{
+  const c=[["1000","White Pearl","705105399539","705105399430"],["1500","Flash Gold","881314329076","881314653966"],["1600","Flash Copper","0212345677667","0211234567843"],["1700","Flash Blue","1123456789172","2123456789171"],["2000","Antique Silver","881314329090","881314653973"],["2500","Antique Gun Metal","881314329113","881314654017"],["2600","Silver Pearl","881314329106","881314653980"],["3000","Crown Gold","705105400433","705105399331"],["3700","Sunset Gold","705105399836","705105399232"],["4000","Silver Gray","705105400136","705105399133"],["4500","Luster Gray","705105400037","705105399034"],["5000","Cupreous Brown","705105399935","705105398938"],["5500","Shimmer Bronze","705105400235","705105398839"],["5800","Deep Brown","881314329175","881314654000"],["6000","Sweet Green","705105400730","705105398730"],["7000","Sea Blue","705105400839","705105398631"],["8000","Wine Red","705105400334","2112345678917"],["9000","Antique Gold","881314329083","881314653997"]];
+  return [["Quarts",c.map(x=>["SM "+x[0]+" QT","Sapphire Metallic "+x[1]+" Qt",x[2],50.30,30.18,4])],
+          ["Gallons",c.map(x=>["SM "+x[0]+" 1G","Sapphire Metallic "+x[1]+" 1G",x[3],161.90,97.14,2])],
+          ["Beads",[["SAHARA 5 QT","Sahara Beads Size 5 Quart","881314329120",20.15,12.09,0],["SAHARA 10 QT","Sahara Beads Size 10 Quart","",20.15,12.09,0]]]];})()],
+["Pearlas Velvet",[
+ ["Quarts",[["PV 101 QT","Pearlas Velvet White Base 1 Qt","705105401133",62.90,37.74,4],["PV 102 QT","Pearlas Velvet Gold Base 1 Qt","705105401232",62.90,37.74,4],["PV 107 QT","Pearlas Velvet Gun Metal 1 Qt","705105400631",62.90,37.74,4]]],
+ ["Gallons",[["PV 101 1G","Pearlas Velvet White Base 1 G","705105401638",214.28,128.57,2],["PV 102 1G","Pearlas Velvet Gold Base 1 G","705105401737",214.28,128.57,2],["PV 107 1G","Pearlas Velvet Gun Metal 1 G","705105400532",214.28,128.57,2]]]]],
+["Crystal Brush Glitter",[
+ ["Quarts",[["CB 100 QT","Crystal Brush White Qt","6301489887262",61.28,36.77,4],["CB 400 QT","Crystal Brush Gold Qt","794504545425",61.28,36.77,4],["CB 700 QT","Crystal Brush Smoked Black Qt","794504545722",61.28,36.77,4]]],
+ ["Gallons",[["CB 100 1G","Crystal Brush White 1G","794504545821",197.00,118.20,2],["CB 400 1G","Crystal Brush Gold 1G","794504546125",197.00,118.20,2],["CB 700 1G","Crystal Brush Smoked Black 1G","794504546422",197.00,118.20,2]]]]],
+["Trowels",[["",[
+  ["M TROWEL 330FLEX","M Trowel Plastic PVC 240 x 100 x 1.5mm","8015008506319",27.35,16.41,0],
+  ["M TROWEL 330LIEN10","M Trowel Thick Plastic PVC 240 x 100 x 2.5mm","8015008508023",29.60,17.76,0],
+  ["M TROWEL SMALL","M Trowel Small 200 x 80mm","8015008505381",43.10,25.86,0],
+  ["M TROWEL MEDIUM","M Trowel Medium 240 x 100mm","8015008508375",51.20,30.72,0],
+  ["M TROWEL FLEXIBLE","M Trowel Medium Flexible 240 x 100 x 0.3mm","8015008505336",49.85,29.91,0],
+  ["M TROWEL LARGE","M Trowel Large 280 x 120mm","8015008508368",56.60,33.96,0],
+  ["M TROWEL MINI","M Trowel Mini 40/80 x 140mm","8015008505008",48.50,29.10,0],
+  ["M TROWEL NARROW EDGING","M Trowel Narrow Edging 200 x 50mm","8015008507262",51.20,30.72,0],
+  ["M TROWEL TRAPEZOID","M Trowel Trapezoid 240 x 120mm","8015008505039",58.40,35.04,0],
+  ["M TROWEL L TRAPEZOID","M Trowel Trapezoid Large 280 x 140mm","8015008505046",60.20,36.12,0],
+  ["M TROWEL OVAL FLEX","M Trowel Flexible Oval 240 x 100 x 0.3mm","8015008508580",56.50,33.90,0],
+  ["M TROWEL WHITEOUT S","M Trowel WhiteOut Small 200 x 80","8015008507651",147.50,88.50,0],
+  ["M TROWEL WHITEOUT M","M Trowel WhiteOut Medium 240 x 100","8015008504193",154.70,92.82,0],
+  ["M TROWEL WHITEOUT L","M Trowel WhiteOut Large 280 x 120","8015008508535",161.00,96.60,0],
+  ["M TROWEL 14\"","M Trowel Long 360 x 110 x 0.3mm","8015008505572",95.30,57.18,0],
+  ["M TROWEL 16\"","M Trowel Extra Long 405 x 110 x 0.3mm","8015008505589",107.90,64.74,0]]]]],
+["Spatulas",[["",[
+  ["105/LU 40 MM","40 mm Spatula (1.5\")","8015008500430",17.90,10.74,12],
+  ["105/LU 60 MM","60 mm Spatula (2\")","8015008500447",19.25,11.55,12],
+  ["105/LU 80 MM","80 mm Spatula (3\")","8015008500454",20.15,12.09,12],
+  ["105/LU 100 MM","100 mm Spatula (4\")","8015008500461",21.50,12.90,12],
+  ["105/LU 120 MM","120 mm Spatula (5\")","8015008500478",26.00,15.60,12],
+  ["105/LU 150 MM","150 mm Spatula (6\")","8015008500485",29.60,17.76,12],
+  ["105/LU 200 MM","200 mm Spatula (8\")","8015008500492",32.30,19.38,12],
+  ["112 INOX SET","112 Inox Japanese Scrapers, 4 Pieces","8015008500553",27.35,16.41,0]]]]],
+["Brushes",[["",[
+  ["S.704 30x70 BRUSH","S.704 Brush 30x70","8018180704016",31.40,18.84,0],
+  ["S.704 30x100 BRUSH","S.704 Brush 30x100","8018180704023",36.80,22.08,0],
+  ["S.704 5x15 BRUSH","S.704 Brush 5x15","8018180704092",43.90,26.34,0],
+  ["S.704 65x160 BRUSH","S.704 Brush 65x160","8018180704139",55.70,33.42,0],
+  ["85100 BRUSH 100 MM","MB Spalter Brush 100 MM Green","8018180851000",13.85,8.31,0]]]]],
+["Rollers & Tools",[
+ ["Texture tools",[
+  ["319/T RIGATO","Rigato Square Tool 140 x 140","8015008509488",35.00,21.00,0],
+  ["323/T RIGATO M","Rigato Rectangular Tool 200 x 115 mm","8018180495020",39.95,23.97,0],
+  ["320/T RIGATO LONG","Rigato Long Tool 320 x 50 mm","8015008509570",39.50,23.70,0],
+  ["49504 ROUND RIGATO","Rigato Round Tool","8018180495044",18.80,11.28,0],
+  ["ROLLER BUZZ","Buzz Roller","670924872054",59.75,35.85,0],
+  ["ROLLER CROCODILE","Crocodile Roller 25cm","670924872078",59.75,35.85,0],
+  ["ROLLER GRANITE","Granite Roller 20cm","670924872122",59.75,35.85,0],
+  ["ROLLER NET","Net Roller 25cm","8021691263217",59.75,35.85,0],
+  ["ROLLER SNAKE","Snake Roller 25cm","670924872139",59.75,35.85,0],
+  ["SB-WD-5","4 Inch Wood Graining Tool","",14.30,8.58,0],
+  ["SB-WD-L","5 Inch Wood Graining Tool","",18.80,11.28,0],
+  ["SB-VP","6 Inch Wood Graining Tool","",21.50,12.90,0]]],
+ ["Fluted tools",[
+  ["Flute G B","Fluted Green Basic","794300165179",89.00,53.40,1],
+  ["Flute G 1/2","Fluted Green 1/2 Edged","794300165186",84.00,50.40,1],
+  ["Flute G FL","Fluted Green Float","794300165209",94.00,56.40,1],
+  ["Flute G Ins","Fluted Green Inside Corner","794300165216",80.00,48.00,1],
+  ["Flute G Out","Fluted Green Outside Corner","794300165223",80.00,48.00,1],
+  ["Flute B B","Fluted Black Basic","794300165162",89.00,53.40,1],
+  ["Flute B 1/2","Fluted Black 1/2 Edged","794300165131",89.00,53.40,1],
+  ["Flute B FL","Fluted Black Float","794300165155",94.00,56.40,1],
+  ["Flute RW A","Fluted Raked White A","794300165148",89.00,53.40,1],
+  ["Flute RW B","Fluted Raked White B","794300165193",89.00,53.40,1],
+  ["Flute RW FL","Fluted Raked White Float","794300165230",94.00,56.40,1]]]]],
+["Glitter, Mica & Leaf",[
+ ["4 oz",[
+  ["4OZ BRONZE GLITTER","Glitter Bronze 4 oz","670924871521",8.90,5.34,0],
+  ["4OZ GOLD GLITTER","Glitter Gold 4 oz","670924871538",8.90,5.34,0],
+  ["4OZ SILVER","Glitter Silver 4 oz","670924871545",8.90,5.34,0],
+  ["4OZ WHITE GLITTER","Glitter White 4 oz","670924871552",8.90,5.34,0],
+  ["4OZ BLACK GLITTER","Glitter Black 4 oz","670924871521",8.90,5.34,0],
+  ["MICA FLAKES 4OZ","Mica Flakes, All Colors, 4 oz","",8.90,5.34,0]]],
+ ["1 lb",[
+  ["BRONZE GLITTER 1 LB","Glitter Bronze 1 lb","670924871569",35.00,21.00,0],
+  ["GOLD GLITTER 1 LB","Glitter Gold 1 lb","670924871576",35.00,21.00,0],
+  ["SILVER GLITTER 1 LB","Glitter Silver 1 lb","670924871583",35.00,21.00,0],
+  ["WHITE GLITTER 1 LB","Glitter White 1 lb","670924871590",35.00,21.00,0],
+  ["BLACK GLITTER 1 LB","Glitter Black 1 lb","670924871569",35.00,21.00,0],
+  ["MICA FLAKES 1 LB","Mica Flakes, All Colors, 1 lb","",35.00,21.00,0]]],
+ ["Leaf & pigment",[
+  ["GOLD LEAF 500","Gold Leaf 500 pcs, 1 box","",98.00,68.60,0],
+  ["SILVER LEAF 500","Silver Leaf 500 pcs, 1 box","",98.00,68.60,0],
+  ["COPPER LEAF 500","Copper Leaf 500 pcs, 1 box","",98.00,68.60,0],
+  ["CWD7024-1G","Concentrated Black Pigment 1G","670924871767",123.20,86.24,0]]]]]
+];
+
+// flatten
+const ITEMS=[];const MIN=it=>(it.ci===0||it.cat==="Spatulas")&&it.cs>1;CATALOG.forEach(([cat,groups],ci)=>groups.forEach(([g,rows])=>rows.forEach(r=>ITEMS.push({id:ITEMS.length,cat,ci,g,sku:r[0],desc:r[1],upc:r[2],msrp:r[3],cost:r[4],cs:r[5]}))));
+
+const KEY="meoded-order-v2";
+let qty={},filt=-1,query="";
+const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");qty=d.qty||{};["store","by","phone","po","need","notes"].forEach(k=>{if(d[k])document.getElementById(k).value=d[k]})}catch(e){}};
+const save=()=>{try{const d={qty};["store","by","phone","po","need","notes"].forEach(k=>d[k]=document.getElementById(k).value);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+const $=s=>document.querySelector(s);
+const money=n=>"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function chips(){
+  const el=$("#chips");
+  el.innerHTML=`<button data-c="-1" class="${filt<0?"on":""}">All</button>`+CATALOG.map(([c],i)=>`<button data-c="${i}" class="${filt===i?"on":""}">${esc(c)}</button>`).join("");
+}
+function render(){
+  const q=query.trim().toLowerCase();
+  let html="",any=false;
+  CATALOG.forEach(([cat],ci)=>{
+    if(filt>=0&&filt!==ci)return;
+    const rows=ITEMS.filter(it=>it.ci===ci&&(!q||(it.sku+" "+it.desc+" "+it.upc).toLowerCase().includes(q)));
+    if(!rows.length)return;any=true;
+    html+=`<section><h2>${esc(cat)}</h2>`;
+    let g=null;
+    rows.forEach((it,i)=>{
+      if(it.g!==g){if(g!==null)html+=`</div>`;g=it.g;html+=(g?`<h3>${esc(g)}</h3>`:`<div style="height:8px"></div>`)+`<div class="list">`;}
+      const n=qty[it.id]||0;
+      html+=`<div class="row${n?" has":""}"><div style="min-width:0"><div class="desc">${esc(it.desc)}</div>
+      <div class="meta"><span class="sku">${esc(it.sku)}</span>${MIN(it)?`<span class="cost">${it.cat==="Spatulas"?"Box":"Case"} of ${it.cs} only</span>`:it.cs?`<span>Case ${it.cs}</span>`:""}</div></div>
+      <div class="step"><button data-d="${MIN(it)?-it.cs:-1}" data-i="${it.id}" aria-label="Less ${esc(it.desc)}">−</button>
+      <input id="q${it.id}" inputmode="numeric" data-i="${it.id}" value="${n||""}" placeholder="0" aria-label="Quantity ${esc(it.desc)}">
+      <button data-d="${MIN(it)?it.cs:1}" data-i="${it.id}" aria-label="More ${esc(it.desc)}">+</button>
+      ${it.cs>1&&!MIN(it)?`<button class="case" data-d="${it.cs}" data-i="${it.id}" title="Add a case of ${it.cs}">+CS</button>`:""}</div></div>`;
+    });
+    html+=`</div></section>`;
+  });
+  $("#cat").innerHTML=any?html:`<div class="empty">No items match “${esc(query)}”.</div>`;
+  totals();
+}
+function lines(){return ITEMS.filter(it=>qty[it.id]>0).map(it=>({...it,n:qty[it.id]}))}
+function totals(){
+  const L=lines(),units=L.reduce((a,b)=>a+b.n,0);
+  $("#tCost").textContent=units;
+  $("#tCount").textContent=L.length?`${L.length} line${L.length>1?"s":""} · ${units} unit${units>1?"s":""}`:"No items yet";
+}
+function roundCase(id,n){const it=ITEMS[id];return MIN(it)&&n>0?Math.ceil(n/it.cs)*it.cs:n}
+function setQty(id,n,round=true){n=Math.max(0,Math.floor(n)||0);if(round)n=roundCase(id,n);if(n)qty[id]=n;else delete qty[id];save();
+  const inp=document.getElementById("q"+id);if(inp){if(document.activeElement!==inp)inp.value=n||"";inp.closest(".row").classList.toggle("has",!!n)}totals();}
+
+function orderText(){
+  const L=lines(),v=k=>document.getElementById(k).value.trim();
+  let t="MEODED ORDER — PAINT PLACE NY\n";
+  if(v("store"))t+="Store: "+v("store")+"\n";
+  if(v("by"))t+="Ordered by: "+v("by")+"\n";
+  if(v("phone"))t+="Questions? Call: "+v("phone")+"\n";
+  if(v("po"))t+="PO #: "+v("po")+"\n";
+  if(v("need"))t+="Need by: "+new Date(v("need")+"T12:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+"\n";
+  t+="\n";let cat=null;
+  L.forEach(it=>{if(it.cat!==cat){cat=it.cat;t+=cat.toUpperCase()+"\n"}t+=`- ${it.desc} [${it.sku}]: ${it.n}\n`});
+  t+="\nTotal: "+L.reduce((a,b)=>a+b.n,0)+" units\n";
+  if(v("notes"))t+="\nNotes: "+v("notes")+"\n";
+  return t;
+}
+function review(){
+  const L=lines();
+  $("#lines").innerHTML=L.length?L.map(it=>`<tr><td>${esc(it.desc)}<div class="sku">${esc(it.sku)}</div>${MIN(it)?`<div class="sku">${it.n/it.cs} case${it.n/it.cs>1?"s":""} of ${it.cs}</div>`:""}</td><td class="n">${it.n}</td></tr>`).join(""):`<tr><td colspan="2" class="empty">Add items to build an order.</td></tr>`;
+  $("#fCost").textContent=L.reduce((a,b)=>a+b.n,0);
+  $("#txt").textContent=orderText();
+}
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,1800)}
+function selectTxt(){const r=document.createRange();r.selectNodeContents($("#txt"));const s=getSelection();s.removeAllRanges();s.addRange(r)}
+
+$("#chips").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;filt=+b.dataset.c;chips();render();scrollTo({top:0})});
+$("#q").addEventListener("input",e=>{query=e.target.value;render()});
+$("#cat").addEventListener("click",e=>{const b=e.target.closest("button[data-d]");if(!b)return;const id=+b.dataset.i;setQty(id,(qty[id]||0)+ +b.dataset.d);document.getElementById("q"+id).value=qty[id]||""});
+$("#cat").addEventListener("input",e=>{if(e.target.dataset.i)setQty(+e.target.dataset.i,parseInt(e.target.value,10),false)});
+$("#cat").addEventListener("change",e=>{const d=e.target.dataset.i;if(d===undefined)return;const id=+d,before=parseInt(e.target.value,10)||0;setQty(id,before);e.target.value=qty[id]||"";if(qty[id]&&qty[id]!==before)toast(`Rounded up to ${qty[id]} (full cases of ${ITEMS[id].cs})`)});
+$("#reviewBtn").onclick=()=>{document.activeElement&&document.activeElement.blur();review();$("#sheet").hidden=false};
+$("#closeBtn").onclick=()=>$("#sheet").hidden=true;
+$("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")$("#sheet").hidden=true});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#sheet").hidden=true});
+["store","by","phone","po","need","notes"].forEach(k=>document.getElementById(k).addEventListener("input",e=>{e.target.classList.remove("miss");save();$("#txt").textContent=orderText()}));
+$("#copyBtn").onclick=()=>{const miss=["store","by","phone"].filter(k=>!document.getElementById(k).value.trim());if(miss.length){$("#sheet").hidden=true;miss.forEach(k=>document.getElementById(k).classList.add("miss"));scrollTo({top:0});document.getElementById(miss[0]).focus();toast("Enter the store, who's ordering, and a phone number");return}const t=orderText();navigator.clipboard.writeText(t).then(()=>toast("Order copied")).catch(()=>{selectTxt();toast("Text selected — copy it")})};
+$("#selBtn").onclick=selectTxt;
+let armed=false;
+$("#clearBtn").onclick=e=>{if(!Object.keys(qty).length)return;if(!armed){armed=true;e.target.textContent="Tap to confirm";setTimeout(()=>{armed=false;e.target.textContent="Clear"},2500);return}
+  armed=false;e.target.textContent="Clear";qty={};save();render();toast("Order cleared")};
+
+load();for(const k in qty){const n=roundCase(+k,qty[k]);if(n)qty[k]=n}save();chips();render();
+</script>
+</body>
+</html>
