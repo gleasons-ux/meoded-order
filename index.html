@@ -142,9 +142,10 @@ pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);borde
     </div>
     <div class="sent" id="sentBox" hidden><b>Order submitted.</b> <span id="sentMsg"></span> <button class="btn ghost" id="newBtn">Start a new order</button></div>
     <div class="err" id="errBox" hidden></div>
-    <div class="src">Submit sends the order straight to the office. Copy order is a backup for texting it in.</div>
+    <div class="src">Submit sends the order to the office and opens a Formspree confirmation page. Use your browser's back button to return here. Copy order is a backup for texting it in.</div>
   </div>
 </div>
+<form id="fsForm" action="https://formspree.io/f/xqpplnvr" method="POST" hidden></form>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -396,32 +397,33 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#sheet").hidden=t
 ["store","by","phone","po","need","notes"].forEach(k=>document.getElementById(k).addEventListener("input",e=>{e.target.classList.remove("miss");save();$("#txt").textContent=orderText()}));
 function checkWho(){const miss=["store","by","phone"].filter(k=>!document.getElementById(k).value.trim());if(!miss.length)return true;$("#sheet").hidden=true;miss.forEach(k=>document.getElementById(k).classList.add("miss"));scrollTo({top:0});document.getElementById(miss[0]).focus();toast("Enter the store, who's ordering, and a phone number");return false}
 const FORMSPREE="https://formspree.io/f/xqpplnvr";
-$("#sendBtn").onclick=async()=>{
+$("#sendBtn").onclick=()=>{
   if(!checkWho())return;
   const L=lines();if(!L.length){toast("Add items before submitting");return}
-  const v=k=>document.getElementById(k).value.trim(),b=$("#sendBtn");
-  $("#errBox").hidden=true;b.disabled=true;b.textContent="Submitting…";
-  const payload={_subject:`Meoded order — ${v("store")} (${v("by")})`,store:v("store"),ordered_by:v("by"),phone:v("phone"),po_number:v("po"),need_by:v("need"),notes:v("notes"),
-    total_units:L.reduce((a,x)=>a+x.n,0),line_count:L.length,order:orderText(),
-    items:L.map(x=>`${x.sku} | ${x.desc} | ${x.n}`).join("\n")};
-  try{
-    const r=await fetch(FORMSPREE,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error((j.errors&&j.errors.map(e=>e.message).join(", "))||("status "+r.status));
-    $("#sentMsg").textContent=`${payload.total_units} units for ${payload.store}, sent ${new Date().toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}.`;
-    $("#sentBox").hidden=false;b.textContent="Submitted";toast("Order submitted");
-  }catch(e){
-    $("#errBox").textContent="The order didn't go through ("+e.message+"). Check your connection and tap Submit again, or tap Copy order and text it in.";
-    $("#errBox").hidden=false;b.disabled=false;b.textContent="Submit order";
-  }
+  const v=k=>document.getElementById(k).value.trim(),f=$("#fsForm");
+  const fields={_subject:`Meoded order — ${v("store")} (${v("by")})`,store:v("store"),ordered_by:v("by"),phone:v("phone"),po_number:v("po"),need_by:v("need"),notes:v("notes"),
+    total_units:String(L.reduce((a,x)=>a+x.n,0)),message:orderText(),items:L.map(x=>`${x.sku} | ${x.desc} | ${x.n}`).join("\n")};
+  f.innerHTML="";
+  for(const [k,val] of Object.entries(fields)){const i=document.createElement(k==="message"||k==="items"?"textarea":"input");if(i.tagName==="INPUT")i.type="hidden";i.name=k;i.value=val;f.appendChild(i)}
+  try{localStorage.setItem(KEY+"-sent",JSON.stringify({at:Date.now(),store:fields.store,units:fields.total_units}))}catch(e){}
+  $("#sendBtn").disabled=true;$("#sendBtn").textContent="Submitting…";
+  f.submit();
 };
+function sentBanner(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY+"-sent")||"null")}catch(e){}
+  if(!d||Date.now()-d.at>6*3600e3)return;
+  const el=document.createElement("div");el.className="sent";el.style.marginBottom="12px";
+  el.innerHTML=`<b>Order submitted</b><span>${esc(d.units)} units for ${esc(d.store)}, ${new Date(d.at).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})}.</span><button class="btn ghost" id="newBtn2">Start a new order</button><button class="btn ghost" id="keepBtn">Keep editing</button>`;
+  $("main").prepend(el);
+  const done=()=>{try{localStorage.removeItem(KEY+"-sent")}catch(e){}el.remove()};
+  $("#newBtn2").onclick=()=>{done();$("#newBtn").click()};$("#keepBtn").onclick=done;}
+window.addEventListener("pageshow",e=>{if(e.persisted){const b=$("#sendBtn");b.disabled=false;b.textContent="Submit order";$("#sheet").hidden=true;if(!document.querySelector("main > .sent"))sentBanner()}});
 $("#newBtn").onclick=()=>{qty={};["po","need","notes"].forEach(k=>document.getElementById(k).value="");save();render();$("#sheet").hidden=true;scrollTo({top:0});toast("Ready for a new order")};
 $("#copyBtn").onclick=()=>{if(!checkWho())return;const t=orderText();navigator.clipboard.writeText(t).then(()=>toast("Order copied")).catch(()=>{selectTxt();toast("Text selected — copy it")})};
 let armed=false;
 $("#clearBtn").onclick=e=>{if(!Object.keys(qty).length)return;if(!armed){armed=true;e.target.textContent="Tap to confirm";setTimeout(()=>{armed=false;e.target.textContent="Clear"},2500);return}
   armed=false;e.target.textContent="Clear";qty={};save();render();toast("Order cleared")};
 
-load();for(const k in qty){const n=roundCase(+k,qty[k]);if(n)qty[k]=n}save();chips();render();
+load();for(const k in qty){const n=roundCase(+k,qty[k]);if(n)qty[k]=n}save();chips();render();sentBanner();
 </script>
 </body>
 </html>
