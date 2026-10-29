@@ -38,8 +38,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 main{padding-block:14px 120px}
 .who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
 .who label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);min-width:0}
-.who input{font-size:16px;text-transform:none;letter-spacing:0}
-.who input.miss{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
+.who input,.who select{font-size:16px;text-transform:none;letter-spacing:0}
+.who .miss{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
 @media (max-width:680px){.who{grid-template-columns:1fr 1fr}.who label:last-child{grid-column:1/-1}}
 @media (max-width:440px){.who{grid-template-columns:1fr}}
 .note{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:14px}
@@ -107,7 +107,7 @@ pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);borde
 
 <main class="wrap">
   <div class="who">
-    <label for="store">Store ordering<input id="store" list="stores" placeholder="e.g. Queens" autocomplete="off"></label>
+    <label for="store">Store ordering<select id="store"><option value="">Choose a store</option><option>Allstate Paint Place</option><option>Astoria Paint Place</option><option>Bayside Paint Place</option><option>Paints By George</option><option>Seaford Paint Place</option><option>Willis Paint Place</option><option>The Paint Place of Williston Park</option></select></label>
     <label for="by">Ordered by<input id="by" placeholder="Your name" autocomplete="name"></label>
     <label for="phone">Phone for questions<input id="phone" type="tel" inputmode="tel" placeholder="(516) 555-0123" autocomplete="tel"></label>
   </div>
@@ -125,11 +125,8 @@ pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);borde
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <h2 id="sheetTitle">Order review <button class="x" id="closeBtn" aria-label="Close">×</button></h2>
     <div class="form">
-      <label>PO #<input id="po" placeholder="Optional"></label>
-      <label>Need by<input id="need" type="date"></label>
       <label class="full">Notes<textarea id="notes" rows="2" placeholder="Tint instructions, job name, delivery notes"></textarea></label>
     </div>
-    <datalist id="stores"><option>Queens</option><option>Brooklyn</option><option>Long Island</option><option>Westchester</option></datalist>
     <div class="tbl"><table>
       <thead><tr><th>Item</th><th class="n">Qty</th></tr></thead>
       <tbody id="lines"></tbody>
@@ -145,7 +142,7 @@ pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);borde
     <div class="src">Submit sends the order to the office and opens a Formspree confirmation page. Use your browser's back button to return here. Copy order is a backup for texting it in.</div>
   </div>
 </div>
-<form id="fsForm" action="https://formspree.io/f/xqpplnvr" method="POST" hidden></form>
+<form id="fsForm" action="https://formspree.io/f/mjyyozza" method="POST" hidden></form>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -316,10 +313,10 @@ const CATALOG=[
 // flatten
 const ITEMS=[];const MIN=it=>(it.ci===0||it.cat==="Spatulas")&&it.cs>1;CATALOG.forEach(([cat,groups],ci)=>groups.forEach(([g,rows])=>rows.forEach(r=>ITEMS.push({id:ITEMS.length,cat,ci,g,sku:r[0],desc:r[1],upc:r[2],msrp:r[3],cost:r[4],cs:r[5]}))));
 
-const KEY="meoded-order-v2";
+const KEY="meoded-order-v3";
 let qty={},filt=-1,query="";
-const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");qty=d.qty||{};["store","by","phone","po","need","notes"].forEach(k=>{if(d[k])document.getElementById(k).value=d[k]})}catch(e){}};
-const save=()=>{try{const d={qty};["store","by","phone","po","need","notes"].forEach(k=>d[k]=document.getElementById(k).value);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");qty=d.qty||{};["store","by","phone","notes"].forEach(k=>{if(d[k])document.getElementById(k).value=d[k]})}catch(e){}};
+const save=()=>{try{const d={qty};["store","by","phone","notes"].forEach(k=>d[k]=document.getElementById(k).value);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
 const $=s=>document.querySelector(s);
 const money=n=>"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -368,8 +365,6 @@ function orderText(){
   if(v("store"))t+="Store: "+v("store")+"\n";
   if(v("by"))t+="Ordered by: "+v("by")+"\n";
   if(v("phone"))t+="Questions? Call: "+v("phone")+"\n";
-  if(v("po"))t+="PO #: "+v("po")+"\n";
-  if(v("need"))t+="Need by: "+new Date(v("need")+"T12:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+"\n";
   t+="\n";let cat=null;
   L.forEach(it=>{if(it.cat!==cat){cat=it.cat;t+=cat.toUpperCase()+"\n"}t+=`- ${it.desc} [${it.sku}]: ${it.n}\n`});
   t+="\nTotal: "+L.reduce((a,b)=>a+b.n,0)+" units\n";
@@ -394,14 +389,14 @@ $("#reviewBtn").onclick=()=>{$("#sentBox").hidden=true;$("#errBox").hidden=true;
 $("#closeBtn").onclick=()=>$("#sheet").hidden=true;
 $("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")$("#sheet").hidden=true});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#sheet").hidden=true});
-["store","by","phone","po","need","notes"].forEach(k=>document.getElementById(k).addEventListener("input",e=>{e.target.classList.remove("miss");save();$("#txt").textContent=orderText()}));
+["store","by","phone","notes"].forEach(k=>document.getElementById(k).addEventListener("input",e=>{e.target.classList.remove("miss");save();$("#txt").textContent=orderText()}));
 function checkWho(){const miss=["store","by","phone"].filter(k=>!document.getElementById(k).value.trim());if(!miss.length)return true;$("#sheet").hidden=true;miss.forEach(k=>document.getElementById(k).classList.add("miss"));scrollTo({top:0});document.getElementById(miss[0]).focus();toast("Enter the store, who's ordering, and a phone number");return false}
-const FORMSPREE="https://formspree.io/f/xqpplnvr";
+const FORMSPREE="https://formspree.io/f/mjyyozza";
 $("#sendBtn").onclick=()=>{
   if(!checkWho())return;
   const L=lines();if(!L.length){toast("Add items before submitting");return}
   const v=k=>document.getElementById(k).value.trim(),f=$("#fsForm");
-  const fields={_subject:`Meoded order — ${v("store")} (${v("by")})`,store:v("store"),ordered_by:v("by"),phone:v("phone"),po_number:v("po"),need_by:v("need"),notes:v("notes"),
+  const fields={email:"gleasons@paintplaceny.com",_subject:`Meoded order — ${v("store")} (${v("by")})`,store:v("store"),ordered_by:v("by"),phone:v("phone"),notes:v("notes"),
     total_units:String(L.reduce((a,x)=>a+x.n,0)),message:orderText(),items:L.map(x=>`${x.sku} | ${x.desc} | ${x.n}`).join("\n")};
   f.innerHTML="";
   for(const [k,val] of Object.entries(fields)){const i=document.createElement(k==="message"||k==="items"?"textarea":"input");if(i.tagName==="INPUT")i.type="hidden";i.name=k;i.value=val;f.appendChild(i)}
@@ -417,7 +412,7 @@ function sentBanner(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY+"-sen
   const done=()=>{try{localStorage.removeItem(KEY+"-sent")}catch(e){}el.remove()};
   $("#newBtn2").onclick=()=>{done();$("#newBtn").click()};$("#keepBtn").onclick=done;}
 window.addEventListener("pageshow",e=>{if(e.persisted){const b=$("#sendBtn");b.disabled=false;b.textContent="Submit order";$("#sheet").hidden=true;if(!document.querySelector("main > .sent"))sentBanner()}});
-$("#newBtn").onclick=()=>{qty={};["po","need","notes"].forEach(k=>document.getElementById(k).value="");save();render();$("#sheet").hidden=true;scrollTo({top:0});toast("Ready for a new order")};
+$("#newBtn").onclick=()=>{qty={};["notes"].forEach(k=>document.getElementById(k).value="");save();render();$("#sheet").hidden=true;scrollTo({top:0});toast("Ready for a new order")};
 $("#copyBtn").onclick=()=>{if(!checkWho())return;const t=orderText();navigator.clipboard.writeText(t).then(()=>toast("Order copied")).catch(()=>{selectTxt();toast("Text selected — copy it")})};
 let armed=false;
 $("#clearBtn").onclick=e=>{if(!Object.keys(qty).length)return;if(!armed){armed=true;e.target.textContent="Tap to confirm";setTimeout(()=>{armed=false;e.target.textContent="Clear"},2500);return}
