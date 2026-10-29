@@ -36,11 +36,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .chips button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:5px 12px;font:500 13px var(--body);cursor:pointer}
 .chips button.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 main{padding-block:14px 120px}
-.who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.who{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
 .who label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);min-width:0}
 .who input,.who select{font-size:16px;text-transform:none;letter-spacing:0}
 .who .miss{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
-@media (max-width:680px){.who{grid-template-columns:1fr 1fr}.who label:last-child{grid-column:1/-1}}
 @media (max-width:440px){.who{grid-template-columns:1fr}}
 .note{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:14px}
 .note b{color:var(--warn)}
@@ -104,23 +103,24 @@ pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);borde
     <div class="chips" id="chips"></div>
   </div>
 </header>
-
+ 
 <main class="wrap">
   <div class="who">
     <label for="store">Store ordering<select id="store"><option value="">Choose a store</option><option>Allstate Paint Place</option><option>Astoria Paint Place</option><option>Bayside Paint Place</option><option>Paints By George</option><option>Seaford Paint Place</option><option>Willis Paint Place</option><option>The Paint Place of Williston Park</option></select></label>
     <label for="by">Ordered by<input id="by" placeholder="Your name" autocomplete="name"></label>
     <label for="phone">Phone for questions<input id="phone" type="tel" inputmode="tel" placeholder="(516) 555-0123" autocomplete="tel"></label>
+    <label for="email">Your email<input id="email" type="email" inputmode="email" placeholder="name@paintplaceny.com" autocomplete="email"></label>
   </div>
   <div class="note"><span>✎</span><div><b>Deep colors:</b> use the Base 3 + 4 SKU. <b>Plasters</b> order in full cases only: quarts by 6, gallons by 2. <b>Spatulas</b> order in full boxes of 12.</div></div>
   <div id="cat"></div>
 </main>
-
+ 
 <div class="bar"><div class="wrap">
   <div class="tot"><b id="tCost">0</b> units<small id="tCount">No items yet</small></div>
   <button class="btn ghost" id="clearBtn">Clear</button>
   <button class="btn" id="reviewBtn">Review order</button>
 </div></div>
-
+ 
 <div class="sheet" id="sheet" hidden>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <h2 id="sheetTitle">Order review <button class="x" id="closeBtn" aria-label="Close">×</button></h2>
@@ -144,7 +144,7 @@ pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);borde
 </div>
 <form id="fsForm" action="https://formspree.io/f/mjyyozza" method="POST" hidden></form>
 <div class="toast" id="toast" hidden></div>
-
+ 
 <script>
 // [sku, description, upc, msrp, dealer cost, case qty (0 = N/A)]
 const CATALOG=[
@@ -309,18 +309,18 @@ const CATALOG=[
   ["COPPER LEAF 500","Copper Leaf 500 pcs, 1 box","",98.00,68.60,0],
   ["CWD7024-1G","Concentrated Black Pigment 1G","670924871767",123.20,86.24,0]]]]]
 ];
-
+ 
 // flatten
 const ITEMS=[];const MIN=it=>(it.ci===0||it.cat==="Spatulas")&&it.cs>1;CATALOG.forEach(([cat,groups],ci)=>groups.forEach(([g,rows])=>rows.forEach(r=>ITEMS.push({id:ITEMS.length,cat,ci,g,sku:r[0],desc:r[1],upc:r[2],msrp:r[3],cost:r[4],cs:r[5]}))));
-
+ 
 const KEY="meoded-order-v3";
 let qty={},filt=-1,query="";
-const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");qty=d.qty||{};["store","by","phone","notes"].forEach(k=>{if(d[k])document.getElementById(k).value=d[k]})}catch(e){}};
-const save=()=>{try{const d={qty};["store","by","phone","notes"].forEach(k=>d[k]=document.getElementById(k).value);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");qty=d.qty||{};["store","by","phone","email","notes"].forEach(k=>{if(d[k])document.getElementById(k).value=d[k]})}catch(e){}};
+const save=()=>{try{const d={qty};["store","by","phone","email","notes"].forEach(k=>d[k]=document.getElementById(k).value);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
 const $=s=>document.querySelector(s);
 const money=n=>"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-
+ 
 function chips(){
   const el=$("#chips");
   el.innerHTML=`<button data-c="-1" class="${filt<0?"on":""}">All</button>`+CATALOG.map(([c],i)=>`<button data-c="${i}" class="${filt===i?"on":""}">${esc(c)}</button>`).join("");
@@ -358,13 +358,14 @@ function totals(){
 function roundCase(id,n){const it=ITEMS[id];return MIN(it)&&n>0?Math.ceil(n/it.cs)*it.cs:n}
 function setQty(id,n,round=true){n=Math.max(0,Math.floor(n)||0);if(round)n=roundCase(id,n);if(n)qty[id]=n;else delete qty[id];save();
   const inp=document.getElementById("q"+id);if(inp){if(document.activeElement!==inp)inp.value=n||"";inp.closest(".row").classList.toggle("has",!!n)}totals();}
-
+ 
 function orderText(){
   const L=lines(),v=k=>document.getElementById(k).value.trim();
   let t="MEODED ORDER — PAINT PLACE NY\n";
   if(v("store"))t+="Store: "+v("store")+"\n";
   if(v("by"))t+="Ordered by: "+v("by")+"\n";
   if(v("phone"))t+="Questions? Call: "+v("phone")+"\n";
+  if(v("email"))t+="Email: "+v("email")+"\n";
   t+="\n";let cat=null;
   L.forEach(it=>{if(it.cat!==cat){cat=it.cat;t+=cat.toUpperCase()+"\n"}t+=`- ${it.desc} [${it.sku}]: ${it.n}\n`});
   t+="\nTotal: "+L.reduce((a,b)=>a+b.n,0)+" units\n";
@@ -379,7 +380,7 @@ function review(){
 }
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,1800)}
 function selectTxt(){const r=document.createRange();r.selectNodeContents($("#txt"));const s=getSelection();s.removeAllRanges();s.addRange(r)}
-
+ 
 $("#chips").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;filt=+b.dataset.c;chips();render();scrollTo({top:0})});
 $("#q").addEventListener("input",e=>{query=e.target.value;render()});
 $("#cat").addEventListener("click",e=>{const b=e.target.closest("button[data-d]");if(!b)return;const id=+b.dataset.i;setQty(id,(qty[id]||0)+ +b.dataset.d);document.getElementById("q"+id).value=qty[id]||""});
@@ -389,17 +390,17 @@ $("#reviewBtn").onclick=()=>{$("#sentBox").hidden=true;$("#errBox").hidden=true;
 $("#closeBtn").onclick=()=>$("#sheet").hidden=true;
 $("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")$("#sheet").hidden=true});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#sheet").hidden=true});
-["store","by","phone","notes"].forEach(k=>document.getElementById(k).addEventListener("input",e=>{e.target.classList.remove("miss");save();$("#txt").textContent=orderText()}));
+["store","by","phone","email","notes"].forEach(k=>document.getElementById(k).addEventListener("input",e=>{e.target.classList.remove("miss");save();$("#txt").textContent=orderText()}));
 function checkWho(){const miss=["store","by","phone"].filter(k=>!document.getElementById(k).value.trim());if(!miss.length)return true;$("#sheet").hidden=true;miss.forEach(k=>document.getElementById(k).classList.add("miss"));scrollTo({top:0});document.getElementById(miss[0]).focus();toast("Enter the store, who's ordering, and a phone number");return false}
 const FORMSPREE="https://formspree.io/f/mjyyozza";
 $("#sendBtn").onclick=()=>{
   if(!checkWho())return;
   const L=lines();if(!L.length){toast("Add items before submitting");return}
   const v=k=>document.getElementById(k).value.trim(),f=$("#fsForm");
-  const fields={email:"gleasons@paintplaceny.com",_subject:`Meoded order — ${v("store")} (${v("by")})`,store:v("store"),ordered_by:v("by"),phone:v("phone"),notes:v("notes"),
+  const fields={email:v("email"),_subject:`Meoded order — ${v("store")} (${v("by")})`,store:v("store"),ordered_by:v("by"),phone:v("phone"),notes:v("notes"),
     total_units:String(L.reduce((a,x)=>a+x.n,0)),message:orderText(),items:L.map(x=>`${x.sku} | ${x.desc} | ${x.n}`).join("\n")};
   f.innerHTML="";
-  for(const [k,val] of Object.entries(fields)){const i=document.createElement(k==="message"||k==="items"?"textarea":"input");if(i.tagName==="INPUT")i.type="hidden";i.name=k;i.value=val;f.appendChild(i)}
+  for(const [k,val] of Object.entries(fields)){if(k==="email"&&!val)continue;const i=document.createElement(k==="message"||k==="items"?"textarea":"input");if(i.tagName==="INPUT")i.type="hidden";i.name=k;i.value=val;f.appendChild(i)}
   try{localStorage.setItem(KEY+"-sent",JSON.stringify({at:Date.now(),store:fields.store,units:fields.total_units}))}catch(e){}
   $("#sendBtn").disabled=true;$("#sendBtn").textContent="Submitting…";
   f.submit();
@@ -417,7 +418,7 @@ $("#copyBtn").onclick=()=>{if(!checkWho())return;const t=orderText();navigator.c
 let armed=false;
 $("#clearBtn").onclick=e=>{if(!Object.keys(qty).length)return;if(!armed){armed=true;e.target.textContent="Tap to confirm";setTimeout(()=>{armed=false;e.target.textContent="Clear"},2500);return}
   armed=false;e.target.textContent="Clear";qty={};save();render();toast("Order cleared")};
-
+ 
 load();for(const k in qty){const n=roundCase(+k,qty[k]);if(n)qty[k]=n}save();chips();render();sentBanner();
 </script>
 </body>
